@@ -8,6 +8,8 @@ const db = require('./db');
 
 
 const authRoutes = require('./routes/authRoutes');
+const journalRoutes = require('./routes/journalRoutes'); // Assuming this was added earlier
+const moodRoutes = require('./routes/moodRoutes'); // <--- NEW IMPORT
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.use(express.static(path.join(__dirname, '../Frontend')));
 
 
 app.use('/api/auth', authRoutes);
+app.use('/api/journal_entries', journalRoutes); // Assuming this was added earlier
+app.use('/api/mood_entries', moodRoutes); // <--- NEW ROUTE REGISTRATION
 
 
 app.get('/api/health', (req, res) => {

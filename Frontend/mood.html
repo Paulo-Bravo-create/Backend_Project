@@ -11,9 +11,24 @@
         .navbar { background-color: var(--mn-card-bg); border-bottom: 1px solid var(--mn-input-border); }
         .navbar-brand, .nav-link { color: var(--mn-text-color) !important; opacity: 0.9; font-weight: 600; }
         .content-container { padding-top: 50px; }
-        .mood-area { background-color: var(--mn-card-bg); padding: 30px; border-radius: 8px; }
+        .mood-area { background-color: var(--mn-card-bg); padding: 30px; border-radius: 8px; margin-bottom: 20px; }
         .form-control { background-color: var(--mn-input-bg); color: var(--mn-text-color); border: 1px solid var(--mn-input-border); }
-        .btn-purple { background-color: var(--mn-accent-color); color: white; }
+        .form-control::placeholder { color: #888; }
+        .form-control:focus { background-color: #333350; color: white; border-color: var(--mn-accent-color); box-shadow: 0 0 0 0.25rem rgba(156, 39, 176, 0.25); }
+        .btn-purple { background-color: var(--mn-accent-color); color: white; border-color: var(--mn-accent-color); }
+        .btn-purple:hover { background-color: #7b1fa2; border-color: #7b1fa2; color: white; }
+
+        /* Styles for mood display */
+        .mood-item { background-color: #27273a; border-left: 5px solid; margin-bottom: 15px; padding: 15px; border-radius: 4px; }
+        .mood-score-display { font-size: 1.5em; font-weight: 700; }
+        .mood-note { font-size: 0.9em; color: #ccc; white-space: pre-wrap; margin-top: 10px; }
+        /* Style for the large emoji display */
+        #moodEmojiDisplay, #editMoodEmojiDisplay { font-size: 1.5em; line-height: 1; vertical-align: middle; margin-right: 5px; }
+
+        /* Modal styling */
+        .modal-content { background-color: var(--mn-card-bg); color: var(--mn-text-color); }
+        .modal-header { border-bottom-color: var(--mn-input-border); }
+        .modal-footer { border-top-color: var(--mn-input-border); }
     </style>
 </head>
 <body>
@@ -38,25 +53,351 @@
     </nav>
     
     <div class="container content-container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
+        <h2 class="mb-4">Mood Tracker 🌙</h2>
+        <div class="row">
+            <div class="col-lg-5">
                 <div class="mood-area">
-                    <h2 class="mb-4">Mood Tracker</h2>
+                    <h5 class="mb-3">Log Your Mood</h5>
                     <form id="moodLogForm">
-                        <label>How are you feeling?</label>
-                        <input type="range" class="form-range" min="1" max="10" id="moodRange">
-                        <textarea class="form-control mt-3" rows="3" placeholder="Why?"></textarea>
-                        <button class="btn btn-purple mt-3">Log Mood</button>
+                        <div class="mb-4">
+                            <label for="moodRange" class="form-label text-muted d-block">
+                                How are you feeling? 
+                                <span id="moodEmojiDisplay">🌓</span>
+                                Score: 
+                                <span class="badge bg-primary ms-1" id="moodDisplay">5</span>
+                            </label>
+                            <div class="d-flex justify-content-between text-muted small mt-1">
+                                <span>1 (Very Bad)</span>
+                                <span>10 (Excellent)</span>
+                            </div>
+                            <input type="range" class="form-range" min="1" max="10" value="5" step="1" id="moodRange" required> 
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="noteInput" class="form-label text-muted">Quick Note (Optional)</label>
+                            <textarea class="form-control mt-3" rows="3" placeholder="What influenced your mood?" id="noteInput"></textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="submit" id="logMoodBtn" class="btn btn-purple">Log Mood</button>
+                            <span id="formMessage" class="ms-3"></span>
+                        </div>
                     </form>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <h5 class="mb-3">Mood History</h5>
+                <div id="moodEntriesList">
+                    <div class="text-center text-muted p-5 bg-dark rounded" id="loadingIndicator">Loading mood history...</div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Mood Log</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editMoodId"> 
+                        
+                        <div class="mb-4">
+                            <label for="editMoodRange" class="form-label text-muted d-block">
+                                Mood Score: 
+                                <span id="editMoodEmojiDisplay">🌓</span>
+                                <span class="badge bg-primary ms-1" id="editMoodDisplay">5</span>
+                            </label>
+                            <div class="d-flex justify-content-between text-muted small mt-1">
+                                <span>1 (Very Bad)</span>
+                                <span>10 (Excellent)</span>
+                            </div>
+                            <input type="range" class="form-range" min="1" max="10" value="5" step="1" id="editMoodRange" required> 
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editNoteInput" class="form-label text-muted">Quick Note (Optional)</label>
+                            <textarea class="form-control mt-3" rows="3" id="editNoteInput"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" form="editForm" id="saveEditBtn" class="btn btn-purple">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-             // Logout Logic
+            const API_URL = '/api/mood_entries'; 
+            const token = localStorage.getItem('userToken');
+            
+            // --- DOM Elements (Create Form) ---
+            const form = document.getElementById('moodLogForm');
+            const moodRange = document.getElementById('moodRange');
+            const moodDisplay = document.getElementById('moodDisplay');
+            const moodEmojiDisplay = document.getElementById('moodEmojiDisplay');
+            const noteInput = document.getElementById('noteInput');
+            const moodEntriesList = document.getElementById('moodEntriesList');
+            const logMoodBtn = document.getElementById('logMoodBtn');
+            const formMessage = document.getElementById('formMessage');
+
+            // --- DOM Elements (Edit Modal) ---
+            const editModalElement = document.getElementById('editModal');
+            const editModal = new bootstrap.Modal(editModalElement);
+            const editForm = document.getElementById('editForm');
+            const editMoodId = document.getElementById('editMoodId');
+            const editMoodRange = document.getElementById('editMoodRange');
+            const editMoodDisplay = document.getElementById('editMoodDisplay');
+            const editMoodEmojiDisplay = document.getElementById('editMoodEmojiDisplay');
+            const editNoteInput = document.getElementById('editNoteInput');
+            const saveEditBtn = document.getElementById('saveEditBtn');
+
+
+            // --- Utility Functions ---
+
+            const getMoodEmoji = (score) => {
+                // Moon Phase Emojis progression (Dark/Sad to Bright/Happy)
+                if (score >= 9) return '🌝'; // Excellent (Full Moon Face)
+                if (score >= 7) return '🌔'; // Good (Waxing Gibbous / Nearly Full)
+                if (score >= 5) return '🌓'; // Neutral (First Quarter / Half Moon)
+                if (score >= 3) return '🌘'; // Bad (Waning Crescent / Darkening)
+                return '🌚'; // Very Bad (New Moon Face / Darkest)
+            };
+
+            const getMoodClass = (score) => {
+                if (score >= 8) return 'bg-success';
+                if (score >= 6) return 'bg-info';
+                if (score <= 3) return 'bg-danger';
+                if (score <= 5) return 'bg-warning text-dark';
+                return 'bg-secondary';
+            };
+
+            const formatEntryDate = (dateString) => {
+                const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                // Ensure dateString is correctly formatted for the Date object
+                return new Date(dateString).toLocaleDateString(undefined, options);
+            };
+
+            const displayMessage = (msg, isSuccess) => {
+                formMessage.textContent = msg;
+                formMessage.className = isSuccess ? 'text-success' : 'text-danger';
+                setTimeout(() => formMessage.textContent = '', 3000); 
+            };
+            
+            const setLoading = (isLoading) => {
+                logMoodBtn.disabled = isLoading;
+                logMoodBtn.innerHTML = isLoading ? 'Logging...' : 'Log Mood';
+            }
+
+            // --- Slider Listeners ---
+            
+            // 1. Create form listener
+            moodRange.addEventListener('input', () => {
+                const score = parseInt(moodRange.value);
+                moodDisplay.textContent = score;
+                moodDisplay.className = `badge ${getMoodClass(score)} ms-1`;
+                moodEmojiDisplay.textContent = getMoodEmoji(score);
+            });
+            
+            // 2. Edit modal listener
+            editMoodRange.addEventListener('input', () => {
+                const score = parseInt(editMoodRange.value);
+                editMoodDisplay.textContent = score;
+                editMoodDisplay.className = `badge ${getMoodClass(score)} ms-1`;
+                editMoodEmojiDisplay.textContent = getMoodEmoji(score);
+            });
+            
+            // --- READ Entries ---
+            
+            const renderEntries = (entries) => {
+                if (entries.length === 0) {
+                    moodEntriesList.innerHTML = '<p class="text-center text-muted p-4">No mood entries logged yet!</p>';
+                    return;
+                }
+
+                moodEntriesList.innerHTML = entries.map(entry => {
+                    // *** MODIFIED to use log_timestamp ***
+                    const dateStr = formatEntryDate(entry.log_timestamp); 
+                    const score = parseInt(entry.mood_value);
+                    const moodClass = getMoodClass(score);
+                    const emoji = entry.mood_emoji || getMoodEmoji(score); 
+                    const noteContent = entry.mood_note ? `<p class="mood-note">Note: ${entry.mood_note}</p>` : '';
+                    
+                    const sanitizedNote = entry.mood_note ? entry.mood_note.replace(/'/g, "\\'").replace(/\n/g, '\\n') : '';
+
+                    return `
+                        <div class="mood-item" style="border-left-color: ${moodClass.replace('bg-', '') === 'success' ? '#28a745' : moodClass.replace('bg-', '') === 'info' ? '#17a2b8' : moodClass.replace('bg-', '') === 'danger' ? '#dc3545' : '#ffc107'};">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="mood-score-display text-${moodClass.replace('bg-', '')}">${emoji} ${score} / 10</span>
+                                <span class="text-muted small">${dateStr}</span>
+                            </div>
+                            ${noteContent}
+                            <div class="mt-2 text-end">
+                                <button class="btn btn-sm btn-outline-info me-2" onclick="openEditModal(${entry.mood_id}, ${score}, '${sanitizedNote}')">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteEntry(${entry.mood_id})">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            const fetchMoodEntries = async () => {
+                moodEntriesList.innerHTML = '<div class="text-center text-muted p-5 bg-dark rounded">Loading mood history...</div>';
+                if (!token) { return; }
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const entries = await response.json();
+                        renderEntries(entries);
+                    } else {
+                        moodEntriesList.innerHTML = '<p class="text-danger p-4">Could not load mood entries. Please ensure your backend is running.</p>';
+                    }
+                } catch (error) {
+                    console.error('Fetch Error:', error);
+                    moodEntriesList.innerHTML = '<p class="text-danger p-4">Could not load mood entries. Please ensure your backend is running.</p>';
+                }
+            };
+            
+            // --- CREATE Entry ---
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                formMessage.textContent = ''; 
+
+                const newEntry = {
+                    mood_value: parseInt(moodRange.value),
+                    mood_note: noteInput.value.trim(),
+                    mood_emoji: moodEmojiDisplay.textContent.trim()
+                };
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(newEntry)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        displayMessage(data.message || 'Mood logged!', true);
+                        noteInput.value = ''; 
+                        moodRange.value = 5; 
+                        moodRange.dispatchEvent(new Event('input')); 
+                        await fetchMoodEntries(); 
+                    } else {
+                        displayMessage(data.message || `Failed to log mood. Status: ${response.status}`, false);
+                    }
+
+                } catch (error) {
+                    console.error('Submission Error:', error);
+                    displayMessage('Server connection failed during log.', false);
+                } finally {
+                    setLoading(false);
+                }
+            });
+
+            // --- DELETE Entry ---
+
+            window.deleteEntry = async (id) => {
+                if (!confirm('Are you sure you want to delete this mood log? This action cannot be undone.')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${API_URL}/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (response.ok) {
+                        displayMessage('Mood log deleted successfully.', true);
+                        await fetchMoodEntries(); 
+                    } else {
+                        const data = await response.json();
+                        displayMessage(data.message || 'Failed to delete log.', false);
+                    }
+                } catch (error) {
+                    console.error('Delete Error:', error);
+                    displayMessage('Network error during deletion.', false);
+                }
+            };
+
+            // --- UPDATE Entry ---
+
+            window.openEditModal = (id, score, note) => {
+                editMoodId.value = id;
+                editMoodRange.value = score;
+                editNoteInput.value = note;
+                
+                editMoodRange.dispatchEvent(new Event('input')); 
+
+                editModal.show();
+            };
+
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                saveEditBtn.disabled = true;
+
+                const id = editMoodId.value;
+                const updatedEntry = {
+                    mood_value: parseInt(editMoodRange.value),
+                    mood_note: editNoteInput.value.trim(),
+                    mood_emoji: editMoodEmojiDisplay.textContent.trim() 
+                };
+
+                try {
+                    const response = await fetch(`${API_URL}/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(updatedEntry)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        editModal.hide();
+                        displayMessage('Mood log updated successfully!', true);
+                        await fetchMoodEntries();
+                    } else {
+                        alert(`Update failed: ${data.message || 'Server error'}`);
+                    }
+                } catch (error) {
+                    console.error('Update Error:', error);
+                    alert('Network error during update.');
+                } finally {
+                    saveEditBtn.disabled = false;
+                }
+            });
+
+
+            // --- Initial Load & Logout ---
+            
+            fetchMoodEntries();
+            moodRange.dispatchEvent(new Event('input')); 
+
+            // Logout Logic
              document.getElementById('logoutLink').addEventListener('click', (e) => {
                 e.preventDefault();
                 localStorage.clear();

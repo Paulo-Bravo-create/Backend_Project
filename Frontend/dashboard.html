@@ -11,11 +11,27 @@
         .navbar { background-color: var(--mn-card-bg); border-bottom: 1px solid var(--mn-input-border); }
         .navbar-brand, .nav-link { color: var(--mn-text-color) !important; opacity: 0.9; font-weight: 600; }
         .content-container { padding-top: 30px; padding-bottom: 50px; }
-        .dashboard-widget { background-color: var(--mn-card-bg); border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); }
-        .chart-area { min-height: 250px; display: flex; align-items: center; justify-content: center; background-color: var(--mn-input-bg); border-radius: 6px; border: 1px dashed var(--mn-accent-color); color: #aaa; font-size: 0.9em; }
-        .summary-card-value { font-size: 2.2rem; font-weight: 700; color: #4CAF50; }
-        .summary-card-icon { color: var(--mn-accent-color); font-size: 1.5rem; }
-        .btn-purple { background-color: var(--mn-accent-color); border-color: var(--mn-accent-color); color: white; }
+        .dashboard-widget { 
+            background-color: var(--mn-card-bg); 
+            border-radius: 8px; 
+            padding: 20px; 
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--mn-accent-color);
+            margin-top: 10px;
+        }
+        .metric-title {
+            font-size: 1rem;
+            color: #ccc;
+        }
+        .loading-text {
+            color: #888;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -43,7 +59,40 @@
         <h2 class="mb-4">Mood Analytics Dashboard 📈</h2>
         <p class="text-muted mb-4">Welcome, <span id="userNameDisplay" class="text-info">User!</span> Visualize your emotional patterns.</p>
         
-        <div class="row"><div class="col-12 dashboard-widget"><h5>Dashboard Content Loaded Successfully</h5></div></div>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="dashboard-widget">
+                    <div class="metric-title">Total Mood Logs</div>
+                    <div class="metric-value" id="totalMoodLogs"><span class="loading-text">...</span></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="dashboard-widget">
+                    <div class="metric-title">Average Mood Score (1-10)</div>
+                    <div class="metric-value" id="averageMoodScore"><span class="loading-text">...</span></div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="dashboard-widget">
+                    <div class="metric-title">Total Journal Entries</div>
+                    <div class="metric-value" id="totalJournalEntries"><span class="loading-text">...</span></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="dashboard-widget">
+                    <div class="metric-title">Average Sentiment Score (-1.0 to 1.0)</div>
+                    <div class="metric-value" id="averageSentimentScore"><span class="loading-text">...</span></div>
+                </div>
+            </div>
+
+            <div class="col-12 mt-4">
+                <div class="dashboard-widget">
+                    <h5>Chart Area (Future Development)</h5>
+                    <p class="text-muted">Visualizations will appear here once more data is available.</p>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -52,8 +101,82 @@
         document.addEventListener('DOMContentLoaded', () => {
             
             document.getElementById('userNameDisplay').textContent = localStorage.getItem('userName') || 'User';
+            const token = localStorage.getItem('userToken');
+
+            const fetchSummaryData = async (url, successCallback) => {
+                // Return immediately if not logged in
+                if (!token) return;
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        successCallback(data);
+                    } else {
+                        // Pass status for error handling in the callback
+                        console.error(`Failed to fetch summary from ${url}. Status: ${response.status}`);
+                        successCallback(null, response.status); 
+                    }
+                } catch (error) {
+                    console.error(`Network error fetching ${url}:`, error);
+                    successCallback(null, 'Network Error');
+                }
+            };
             
-            
+            // --- MOOD SUMMARY CALLBACK ---
+            const updateMoodMetrics = (data, status) => {
+                const totalLogsEl = document.getElementById('totalMoodLogs');
+                const avgScoreEl = document.getElementById('averageMoodScore');
+                
+                if (data) {
+                    // Update mood metrics
+                    totalLogsEl.textContent = data.total_logs;
+                    avgScoreEl.textContent = data.average_mood;
+                } else {
+                    // Display error if fetch failed
+                    totalLogsEl.innerHTML = `<span class="text-danger small">Error: ${status}</span>`;
+                    avgScoreEl.innerHTML = `<span class="text-danger small">Error: ${status}</span>`;
+                }
+            };
+
+            // --- JOURNAL SUMMARY CALLBACK ---
+            const updateJournalMetrics = (data, status) => {
+                const totalEntriesEl = document.getElementById('totalJournalEntries');
+                const avgSentimentEl = document.getElementById('averageSentimentScore');
+                
+                if (data) {
+                    totalEntriesEl.textContent = data.total_entries;
+                    
+                    // Add color coding to sentiment score
+                    const sentiment = parseFloat(data.average_sentiment);
+                    if (sentiment > 0.1) {
+                        avgSentimentEl.style.color = '#28a745'; // Green for positive
+                    } else if (sentiment < -0.1) {
+                        avgSentimentEl.style.color = '#dc3545'; // Red for negative
+                    } else {
+                        avgSentimentEl.style.color = '#ffc107'; // Yellow/Neutral
+                    }
+                    
+                    // Update journal metrics
+                    avgSentimentEl.textContent = data.average_sentiment;
+                } else {
+                    // Display error if fetch failed
+                    totalEntriesEl.innerHTML = `<span class="text-danger small">Error: ${status}</span>`;
+                    avgSentimentEl.innerHTML = `<span class="text-danger small">Error: ${status}</span>`;
+                }
+            };
+
+            // Fetch data from the new summary endpoints
+            fetchSummaryData('/api/mood_entries/summary', updateMoodMetrics);
+            fetchSummaryData('/api/journal_entries/summary', updateJournalMetrics);
+
+            // Logout Logic
             document.getElementById('logoutLink').addEventListener('click', (e) => {
                 e.preventDefault();
                 localStorage.clear(); 
