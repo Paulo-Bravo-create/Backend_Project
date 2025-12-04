@@ -1,12 +1,10 @@
-// File: ../controllers/moodController.js
+
 
 const db = require('../db'); 
 
-// @desc    Create a new mood entry
-// @route   POST /api/mood_entries/
-// @access  Private 
+
 const createMoodEntry = async (req, res) => {
-    // ... (Your existing logic)
+  
     try {
         const userId = req.user.user_id; 
         const { mood_value, mood_note, mood_emoji } = req.body; 
@@ -34,11 +32,9 @@ const createMoodEntry = async (req, res) => {
     }
 };
 
-// @desc    Get all mood entries for the authenticated user
-// @route   GET /api/mood_entries/
-// @access  Private 
+
 const getMoodEntries = async (req, res) => {
-    // ... (Your existing logic)
+  
     try {
         const userId = req.user.user_id; 
 
@@ -60,9 +56,7 @@ const getMoodEntries = async (req, res) => {
 };
 
 
-// @desc    Update a specific mood entry (NEW)
-// @route   PUT /api/mood_entries/:id
-// @access  Private 
+
 const updateMoodEntry = async (req, res) => {
     try {
         const userId = req.user.user_id;
@@ -93,9 +87,7 @@ const updateMoodEntry = async (req, res) => {
     }
 };
 
-// @desc    Delete a specific mood entry (NEW)
-// @route   DELETE /api/mood_entries/:id
-// @access  Private 
+
 const deleteMoodEntry = async (req, res) => {
     try {
         const userId = req.user.user_id;
@@ -120,9 +112,7 @@ const deleteMoodEntry = async (req, res) => {
     }
 };
 
-// @desc    Get summary statistics for mood logs (NEW for Dashboard)
-// @route   GET /api/mood_entries/summary
-// @access  Private 
+
 const getMoodSummary = async (req, res) => {
     try {
         const userId = req.user.user_id; 
@@ -153,7 +143,7 @@ const getMoodSummary = async (req, res) => {
 module.exports = {
     createMoodEntry,
     getMoodEntries,
-    updateMoodEntry, // EXPORT NEW
-    deleteMoodEntry, // EXPORT NEW
+    updateMoodEntry, 
+    deleteMoodEntry, 
     getMoodSummary
 };

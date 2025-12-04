@@ -104,7 +104,7 @@
             const token = localStorage.getItem('userToken');
 
             const fetchSummaryData = async (url, successCallback) => {
-                // Return immediately if not logged in
+                
                 if (!token) return;
 
                 try {
@@ -119,7 +119,7 @@
                         const data = await response.json();
                         successCallback(data);
                     } else {
-                        // Pass status for error handling in the callback
+                       
                         console.error(`Failed to fetch summary from ${url}. Status: ${response.status}`);
                         successCallback(null, response.status); 
                     }
@@ -129,23 +129,23 @@
                 }
             };
             
-            // --- MOOD SUMMARY CALLBACK ---
+            
             const updateMoodMetrics = (data, status) => {
                 const totalLogsEl = document.getElementById('totalMoodLogs');
                 const avgScoreEl = document.getElementById('averageMoodScore');
                 
                 if (data) {
-                    // Update mood metrics
+                
                     totalLogsEl.textContent = data.total_logs;
                     avgScoreEl.textContent = data.average_mood;
                 } else {
-                    // Display error if fetch failed
+                    
                     totalLogsEl.innerHTML = `<span class="text-danger small">Error: ${status}</span>`;
                     avgScoreEl.innerHTML = `<span class="text-danger small">Error: ${status}</span>`;
                 }
             };
 
-            // --- JOURNAL SUMMARY CALLBACK ---
+           
             const updateJournalMetrics = (data, status) => {
                 const totalEntriesEl = document.getElementById('totalJournalEntries');
                 const avgSentimentEl = document.getElementById('averageSentimentScore');
@@ -153,30 +153,30 @@
                 if (data) {
                     totalEntriesEl.textContent = data.total_entries;
                     
-                    // Add color coding to sentiment score
+                    
                     const sentiment = parseFloat(data.average_sentiment);
                     if (sentiment > 0.1) {
                         avgSentimentEl.style.color = '#28a745'; // Green for positive
                     } else if (sentiment < -0.1) {
-                        avgSentimentEl.style.color = '#dc3545'; // Red for negative
+                        avgSentimentEl.style.color = '#dc3545'; 
                     } else {
-                        avgSentimentEl.style.color = '#ffc107'; // Yellow/Neutral
+                        avgSentimentEl.style.color = '#ffc107'; 
                     }
                     
-                    // Update journal metrics
+                    
                     avgSentimentEl.textContent = data.average_sentiment;
                 } else {
-                    // Display error if fetch failed
+                
                     totalEntriesEl.innerHTML = `<span class="text-danger small">Error: ${status}</span>`;
                     avgSentimentEl.innerHTML = `<span class="text-danger small">Error: ${status}</span>`;
                 }
             };
 
-            // Fetch data from the new summary endpoints
+         
             fetchSummaryData('/api/mood_entries/summary', updateMoodMetrics);
             fetchSummaryData('/api/journal_entries/summary', updateJournalMetrics);
 
-            // Logout Logic
+           
             document.getElementById('logoutLink').addEventListener('click', (e) => {
                 e.preventDefault();
                 localStorage.clear(); 

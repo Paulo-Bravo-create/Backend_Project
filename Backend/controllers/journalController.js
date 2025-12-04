@@ -1,10 +1,8 @@
-// File: ../controllers/journalController.js (MySQL version)
 
-const db = require('../db'); // Your MySQL connection pool
 
-// @desc    Create a new journal entry
-// @route   POST /api/journal_entries/
-// @access  Private 
+const db = require('../db'); 
+
+
 const createJournalEntry = async (req, res) => {
     try {
         const userId = req.user.user_id; 
@@ -33,9 +31,7 @@ const createJournalEntry = async (req, res) => {
     }
 };
 
-// @desc    Get all journal entries for the authenticated user
-// @route   GET /api/journal_entries/
-// @access  Private 
+
 const getJournalEntries = async (req, res) => {
     try {
         const userId = req.user.user_id; 
@@ -57,16 +53,13 @@ const getJournalEntries = async (req, res) => {
     }
 };
 
-// @desc    Update a specific journal entry (NEW)
-// @route   PUT /api/journal_entries/:id
-// @access  Private 
+
 const updateJournalEntry = async (req, res) => {
     try {
         const userId = req.user.user_id;
         const journalId = req.params.id;
         const { title, content, sentiment_score } = req.body;
 
-        // Basic validation
         if (!title || !content || sentiment_score === undefined) {
             return res.status(400).json({ message: 'All fields (title, content, sentiment_score) are required for update.' });
         }
@@ -91,9 +84,7 @@ const updateJournalEntry = async (req, res) => {
     }
 };
 
-// @desc    Delete a specific journal entry (NEW)
-// @route   DELETE /api/journal_entries/:id
-// @access  Private 
+
 const deleteJournalEntry = async (req, res) => {
     try {
         const userId = req.user.user_id;
@@ -118,9 +109,7 @@ const deleteJournalEntry = async (req, res) => {
     }
 };
 
-// @desc    Get summary statistics for journal entries (NEW for Dashboard)
-// @route   GET /api/journal_entries/summary
-// @access  Private 
+
 const getJournalSummary = async (req, res) => {
     try {
         const userId = req.user.user_id; 
@@ -152,7 +141,7 @@ const getJournalSummary = async (req, res) => {
 module.exports = {
     createJournalEntry,
     getJournalEntries,
-    updateJournalEntry, // EXPORT NEW
-    deleteJournalEntry, // EXPORT NEW
+    updateJournalEntry, 
+    deleteJournalEntry, 
     getJournalSummary
 };

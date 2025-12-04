@@ -91,7 +91,7 @@
                 if(isLoading) { btn.disabled = true; btn.innerHTML = '...'; } else { btn.disabled = false; btn.innerHTML = btn.id === 'login-btn' ? 'Login' : 'Register'; }
             };
 
-            // LOGIN
+           
             loginBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 const email = emailInput.value.trim();
@@ -119,7 +119,7 @@
                 finally { setLoading(loginBtn, false); }
             });
 
-            // REGISTER
+            
             registerBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 const full_name = nameInput.value.trim();

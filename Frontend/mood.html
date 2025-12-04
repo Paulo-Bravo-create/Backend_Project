@@ -138,7 +138,7 @@
             const API_URL = '/api/mood_entries'; 
             const token = localStorage.getItem('userToken');
             
-            // --- DOM Elements (Create Form) ---
+        
             const form = document.getElementById('moodLogForm');
             const moodRange = document.getElementById('moodRange');
             const moodDisplay = document.getElementById('moodDisplay');
@@ -148,7 +148,7 @@
             const logMoodBtn = document.getElementById('logMoodBtn');
             const formMessage = document.getElementById('formMessage');
 
-            // --- DOM Elements (Edit Modal) ---
+          
             const editModalElement = document.getElementById('editModal');
             const editModal = new bootstrap.Modal(editModalElement);
             const editForm = document.getElementById('editForm');
@@ -160,15 +160,15 @@
             const saveEditBtn = document.getElementById('saveEditBtn');
 
 
-            // --- Utility Functions ---
+          
 
             const getMoodEmoji = (score) => {
-                // Moon Phase Emojis progression (Dark/Sad to Bright/Happy)
-                if (score >= 9) return '🌝'; // Excellent (Full Moon Face)
-                if (score >= 7) return '🌔'; // Good (Waxing Gibbous / Nearly Full)
-                if (score >= 5) return '🌓'; // Neutral (First Quarter / Half Moon)
-                if (score >= 3) return '🌘'; // Bad (Waning Crescent / Darkening)
-                return '🌚'; // Very Bad (New Moon Face / Darkest)
+               
+                if (score >= 9) return '🌝'; 
+                if (score >= 7) return '🌔'; 
+                if (score >= 5) return '🌓'; 
+                if (score >= 3) return '🌘'; 
+                return '🌚'; 
             };
 
             const getMoodClass = (score) => {
@@ -181,7 +181,7 @@
 
             const formatEntryDate = (dateString) => {
                 const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                // Ensure dateString is correctly formatted for the Date object
+                
                 return new Date(dateString).toLocaleDateString(undefined, options);
             };
 
@@ -196,9 +196,7 @@
                 logMoodBtn.innerHTML = isLoading ? 'Logging...' : 'Log Mood';
             }
 
-            // --- Slider Listeners ---
-            
-            // 1. Create form listener
+           
             moodRange.addEventListener('input', () => {
                 const score = parseInt(moodRange.value);
                 moodDisplay.textContent = score;
@@ -206,7 +204,7 @@
                 moodEmojiDisplay.textContent = getMoodEmoji(score);
             });
             
-            // 2. Edit modal listener
+           
             editMoodRange.addEventListener('input', () => {
                 const score = parseInt(editMoodRange.value);
                 editMoodDisplay.textContent = score;
@@ -214,7 +212,7 @@
                 editMoodEmojiDisplay.textContent = getMoodEmoji(score);
             });
             
-            // --- READ Entries ---
+            
             
             const renderEntries = (entries) => {
                 if (entries.length === 0) {
@@ -223,7 +221,7 @@
                 }
 
                 moodEntriesList.innerHTML = entries.map(entry => {
-                    // *** MODIFIED to use log_timestamp ***
+                    
                     const dateStr = formatEntryDate(entry.log_timestamp); 
                     const score = parseInt(entry.mood_value);
                     const moodClass = getMoodClass(score);
@@ -272,7 +270,7 @@
                 }
             };
             
-            // --- CREATE Entry ---
+            
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -315,7 +313,7 @@
                 }
             });
 
-            // --- DELETE Entry ---
+           
 
             window.deleteEntry = async (id) => {
                 if (!confirm('Are you sure you want to delete this mood log? This action cannot be undone.')) {
@@ -341,7 +339,7 @@
                 }
             };
 
-            // --- UPDATE Entry ---
+            
 
             window.openEditModal = (id, score, note) => {
                 editMoodId.value = id;
@@ -392,12 +390,12 @@
             });
 
 
-            // --- Initial Load & Logout ---
+          
             
             fetchMoodEntries();
             moodRange.dispatchEvent(new Event('input')); 
 
-            // Logout Logic
+           
              document.getElementById('logoutLink').addEventListener('click', (e) => {
                 e.preventDefault();
                 localStorage.clear();
