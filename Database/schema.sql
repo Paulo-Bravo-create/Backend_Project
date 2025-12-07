@@ -37,3 +37,15 @@ CREATE TABLE IF NOT EXISTS mood_logs (
   
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE personality_results (
+    result_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    moon_phase VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+   
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
