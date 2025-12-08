@@ -18,11 +18,41 @@
         .btn-purple { background-color: var(--mn-accent-color); color: white; border-color: var(--mn-accent-color); }
         .btn-purple:hover { background-color: #7b1fa2; border-color: #7b1fa2; color: white; }
 
+/* IMPROVED: Ensure all text-muted elements (including form-label text-muted) are highly readable */
+        .text-muted {
+            color: #b0b0b0 !important;
+        }
+
         /* Styles for entries */
         .entry-item { background-color: #27273a; border-left: 5px solid #673ab7; margin-bottom: 15px; padding: 15px; border-radius: 4px; }
         .entry-title { font-size: 1.2em; font-weight: 600; color: white; }
         .entry-content { font-size: 1em; color: #ccc; white-space: pre-wrap; margin-top: 10px; }
         .sentiment-score { font-weight: 700; margin-left: 10px; }
+        
+        /* Default range slider styles */
+        .form-range { background-color: var(--mn-input-bg); }
+        .form-range::-webkit-slider-thumb { background: var(--mn-accent-color); }
+        .form-range::-moz-range-thumb { background: var(--mn-accent-color); }
+        
+        /* Custom style for the black slider thumb in the edit modal (to differentiate from new entry) */
+        .slider-black::-webkit-slider-thumb { background: #333333; border: 1px solid #555555; }
+        .slider-black::-moz-range-thumb { background: #333333; border: 1px solid #555555; }
+
+        /* MODAL STYLES TO MATCH MOOD.HTML */
+        .modal-content { 
+            background-color: var(--mn-card-bg) !important; 
+            color: var(--mn-text-color); 
+        }
+        .modal-header { border-bottom-color: var(--mn-input-border) !important; }
+        .modal-footer { border-top-color: var(--mn-input-border) !important; }
+
+        /* INPUT STYLES TO MATCH MOOD.HTML INPUTS (Dark Background, White Text) */
+        #editTitleInput, 
+        #editContentInput {
+            background-color: var(--mn-input-bg) !important;
+            color: var(--mn-text-color) !important;
+            border: 1px solid var(--mn-input-border) !important;
+        }
     </style>
 </head>
 <body>
@@ -42,6 +72,7 @@
                     <li class="nav-item"><a class="nav-link active" href="#">Journal</a></li>
                     <li class="nav-item"><a class="nav-link" href="mood.html">Mood</a></li>
                     <li class="nav-item"><a class="nav-link" href="personality.html">Personality</a></li>
+                    <li class="nav-item"><a class="nav-link" href="tipsandawareness.html">Tips/Awareness</a></li>
                     <li class="nav-item"><a class="nav-link" id="logoutLink" href="#">Logout</a></li>
                 </ul>
             </div>
@@ -56,7 +87,7 @@
                     <h5 class="mb-3">New Entry</h5>
                     <form id="journalForm">
                         <div class="mb-3">
-                            <label for="titleInput" class="form-label text-muted">Title</label>
+                            <label for="titleInput" class="form-label text-muted" >Title</label>
                             <input type="text" class="form-control" id="titleInput" required>
                         </div>
                         <div class="mb-3">
@@ -64,8 +95,19 @@
                             <textarea class="form-control" rows="8" placeholder="What happened today?" id="contentInput" required></textarea>
                         </div>
                         
+                        <div class="mb-4">
+                            <label for="sentimentSlider" class="form-label text-muted d-block">
+                         Sentiment Score: <span id="sentimentDisplay" class="sentiment-score text-info">0.00</span>
+                            </label>
+                            <input type="range" class="form-range" min="-100" max="100" value="0" id="sentimentSlider">
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Very Negative (-1.00)</span>
+                                <span>Very Positive (+1.00)</span>
+                            </div>
+                        </div>
+                          
                         <div class="d-flex justify-content-between align-items-center">
-                            <button type="submit" id="submitBtn" class="btn btn-purple">Analyze & Save</button>
+                            <button type="submit" id="submitBtn" class="btn btn-purple">Save Journal</button>
                             <span id="formMessage" class="ms-3"></span>
                         </div>
                     </form>
@@ -99,10 +141,18 @@
                             <label for="editContentInput" class="form-label text-muted">Your Thoughts</label>
                             <textarea class="form-control" rows="8" id="editContentInput" required></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted">Sentiment Score:</label>
-                            <span class="sentiment-score" id="editSentimentDisplay">0.00</span>
+                        
+                        <div class="mb-4">
+                            <label for="editSentimentSlider" class="form-label text-muted d-block">
+                                Manual Sentiment Score: <span id="editSentimentDisplay" class="sentiment-score text-info">0.00</span>
+                            </label>
+                            <input type="range" class="form-range slider-black" min="-100" max="100" value="0" id="editSentimentSlider">
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Very Negative (-1.00)</span>
+                                <span>Very Positive (+1.00)</span>
+                            </div>
                         </div>
+                        
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -126,23 +176,55 @@
             const submitBtn = document.getElementById('submitBtn');
             const formMessage = document.getElementById('formMessage');
             
+            // NEW ENTRY SLIDER ELEMENTS
+            const sentimentSlider = document.getElementById('sentimentSlider');
+            const sentimentDisplay = document.getElementById('sentimentDisplay');
             
+            // EDIT MODAL ELEMENTS
             const editModalElement = document.getElementById('editModal');
             const editModal = new bootstrap.Modal(editModalElement);
             const editForm = document.getElementById('editForm');
             const editEntryId = document.getElementById('editEntryId');
             const editTitleInput = document.getElementById('editTitleInput');
             const editContentInput = document.getElementById('editContentInput');
+            const editSentimentSlider = document.getElementById('editSentimentSlider');
             const editSentimentDisplay = document.getElementById('editSentimentDisplay');
 
 
-            
+            /**
+             * Updates the sentiment score display and color.
+             */
+            const updateSentimentDisplay = (displayElement, score) => {
+                const fixedScore = parseFloat(score).toFixed(2);
+                displayElement.textContent = fixedScore;
+                displayElement.className = 'sentiment-score ' + getSentimentColor(fixedScore); 
+            };
+
+
+            // NEW ENTRY: Listener for the sentiment slider
+            if (sentimentSlider) {
+                sentimentSlider.addEventListener('input', () => {
+                    const score = parseFloat(sentimentSlider.value / 100);
+                    updateSentimentDisplay(sentimentDisplay, score);
+                });
+                // Initialize display on load
+                sentimentSlider.dispatchEvent(new Event('input'));
+            }
+
+            // EDIT: Listener for the edit sentiment slider
+            if (editSentimentSlider) {
+                editSentimentSlider.addEventListener('input', () => {
+                    const score = parseFloat(editSentimentSlider.value / 100);
+                    updateSentimentDisplay(editSentimentDisplay, score);
+                });
+            }
+
 
             const getSentimentColor = (score) => {
-                if (score > 0.3) return 'text-success';
-                if (score < -0.3) return 'text-danger';
-                if (score !== 0) return 'text-warning';
-                return 'text-info';
+                if (score > 0.3) return 'text-success'; // Green for positive
+                if (score < -0.3) return 'text-danger'; // Red for negative
+                if (score !== 0) return 'text-warning'; // Yellow for neutral/mixed
+                return 'text-info'; // Blue for exactly zero
             };
 
             const formatEntryDate = (dateString) => {
@@ -226,11 +308,13 @@
                 e.preventDefault();
                 setLoading(true);
                 formMessage.textContent = ''; 
+                
+                const scoreValue = sentimentSlider ? parseFloat(sentimentSlider.value) / 100 : 0.0;
 
                 const newEntry = {
                     title: titleInput.value.trim(),
                     content: contentInput.value.trim(),
-                    sentiment_score: 0.0 
+                    sentiment_score: scoreValue
                 };
 
                 try {
@@ -249,6 +333,11 @@
                         displayMessage(data.message || 'Entry saved!', true);
                         titleInput.value = ''; 
                         contentInput.value = '';
+                        if (sentimentSlider) {
+                             // Reset slider and display
+                             sentimentSlider.value = 0;
+                             updateSentimentDisplay(sentimentDisplay, 0);
+                        }
                         await fetchJournalEntries(); 
                     } else {
                         displayMessage(data.message || `Failed to save entry. Status: ${response.status}`, false);
@@ -292,8 +381,14 @@
                 editEntryId.value = id;
                 editTitleInput.value = title;
                 editContentInput.value = content;
-                editSentimentDisplay.textContent = parseFloat(score).toFixed(2);
-                editSentimentDisplay.className = getSentimentColor(score) + ' sentiment-score';
+                
+                // Set the slider value (scale the -1.00 to 1.00 score to -100 to 100)
+                const sliderValue = Math.round(score * 100);
+                editSentimentSlider.value = sliderValue; 
+                
+                // Set the display text and color using the new helper function
+                updateSentimentDisplay(editSentimentDisplay, score);
+                
                 editModal.show();
             };
 
@@ -302,10 +397,13 @@
                 document.getElementById('saveEditBtn').disabled = true;
 
                 const id = editEntryId.value;
+                // Capture the score directly from the slider value
+                const editedSentimentScore = parseFloat(editSentimentSlider.value) / 100; 
+
                 const updatedEntry = {
                     title: editTitleInput.value.trim(),
                     content: editContentInput.value.trim(),
-                   
+                    sentiment_score: editedSentimentScore // This is now correctly sent
                 };
 
                 try {
@@ -325,6 +423,7 @@
                         displayMessage('Entry updated successfully!', true);
                         await fetchJournalEntries();
                     } else {
+                        // Display server error if update failed
                         alert(`Update failed: ${data.message || 'Server error'}`);
                     }
                 } catch (error) {

@@ -18,6 +18,11 @@
         .btn-purple { background-color: var(--mn-accent-color); color: white; border-color: var(--mn-accent-color); }
         .btn-purple:hover { background-color: #7b1fa2; border-color: #7b1fa2; color: white; }
 
+/* IMPROVED: Ensure all text-muted elements (including form-label text-muted) are highly readable */
+        .text-muted {
+            color: #b0b0b0 !important;
+        }
+
         /* Styles for mood display */
         .mood-item { background-color: #27273a; border-left: 5px solid; margin-bottom: 15px; padding: 15px; border-radius: 4px; }
         .mood-score-display { font-size: 1.5em; font-weight: 700; }
@@ -46,7 +51,8 @@
                     <li class="nav-item"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="journal.html">Journal</a></li>
                     <li class="nav-item"><a class="nav-link active" href="#">Mood</a></li>
-                  <li class="nav-item"><a class="nav-link" href="personality.html">Personality</a></li>
+                    <li class="nav-item"><a class="nav-link" href="personality.html">Personality</a></li>
+                    <li class="nav-item"><a class="nav-link" href="tipsandawareness.html">Tips/Awareness</a></li>
                     <li class="nav-item"><a class="nav-link" id="logoutLink" href="#">Logout</a></li>
                 </ul>
             </div>
@@ -179,6 +185,16 @@
                 if (score <= 5) return 'bg-warning text-dark';
                 return 'bg-secondary';
             };
+            
+            // NEW HELPER FUNCTION: Returns the appropriate text color class for the display
+            const getMoodScoreDisplayClass = (score) => {
+                if (score >= 8) return 'text-success'; // Green
+                if (score >= 6) return 'text-info';    // Cyan/Light Blue
+                if (score >= 4) return 'text-warning'; // Yellow (Highly visible on dark bg)
+                if (score <= 3) return 'text-danger';  // Red
+                return 'text-secondary';               // Gray
+            };
+
 
             const formatEntryDate = (dateString) => {
                 const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -225,7 +241,8 @@
                     
                     const dateStr = formatEntryDate(entry.log_timestamp); 
                     const score = parseInt(entry.mood_value);
-                    const moodClass = getMoodClass(score);
+                    const moodClass = getMoodClass(score); // Used for border color
+                    const scoreDisplayClass = getMoodScoreDisplayClass(score); // NEW: Used for text color
                     const emoji = entry.mood_emoji || getMoodEmoji(score); 
                     const noteContent = entry.mood_note ? `<p class="mood-note">Note: ${entry.mood_note}</p>` : '';
                     
@@ -234,7 +251,7 @@
                     return `
                         <div class="mood-item" style="border-left-color: ${moodClass.replace('bg-', '') === 'success' ? '#28a745' : moodClass.replace('bg-', '') === 'info' ? '#17a2b8' : moodClass.replace('bg-', '') === 'danger' ? '#dc3545' : '#ffc107'};">
                             <div class="d-flex justify-content-between align-items-start">
-                                <span class="mood-score-display text-${moodClass.replace('bg-', '')}">${emoji} ${score} / 10</span>
+                                <span class="mood-score-display ${scoreDisplayClass}">${emoji} ${score} / 10</span>
                                 <span class="text-muted small">${dateStr}</span>
                             </div>
                             ${noteContent}
