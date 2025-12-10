@@ -18,19 +18,18 @@
         .btn-purple { background-color: var(--mn-accent-color); color: white; border-color: var(--mn-accent-color); }
         .btn-purple:hover { background-color: #7b1fa2; border-color: #7b1fa2; color: white; }
 
-/* IMPROVED: Ensure all text-muted elements (including form-label text-muted) are highly readable */
+
         .text-muted {
             color: #b0b0b0 !important;
         }
 
-        /* Styles for mood display */
+    
         .mood-item { background-color: #27273a; border-left: 5px solid; margin-bottom: 15px; padding: 15px; border-radius: 4px; }
         .mood-score-display { font-size: 1.5em; font-weight: 700; }
         .mood-note { font-size: 0.9em; color: #ccc; white-space: pre-wrap; margin-top: 10px; }
-        /* Style for the large emoji display */
+      
         #moodEmojiDisplay, #editMoodEmojiDisplay { font-size: 1.5em; line-height: 1; vertical-align: middle; margin-right: 5px; }
 
-        /* Modal styling */
         .modal-content { background-color: var(--mn-card-bg); color: var(--mn-text-color); }
         .modal-header { border-bottom-color: var(--mn-input-border); }
         .modal-footer { border-top-color: var(--mn-input-border); }
@@ -187,13 +186,13 @@
                 return 'bg-secondary';
             };
             
-            // NEW HELPER FUNCTION: Returns the appropriate text color class for the display
+           
             const getMoodScoreDisplayClass = (score) => {
-                if (score >= 8) return 'text-success'; // Green
-                if (score >= 6) return 'text-info';    // Cyan/Light Blue
-                if (score >= 4) return 'text-warning'; // Yellow (Highly visible on dark bg)
-                if (score <= 3) return 'text-danger';  // Red
-                return 'text-secondary';               // Gray
+                if (score >= 8) return 'text-success'; 
+                if (score >= 6) return 'text-info';    
+                if (score >= 4) return 'text-warning'; 
+                if (score <= 3) return 'text-danger';  
+                return 'text-secondary';               
             };
 
 
@@ -242,8 +241,8 @@
                     
                     const dateStr = formatEntryDate(entry.log_timestamp); 
                     const score = parseInt(entry.mood_value);
-                    const moodClass = getMoodClass(score); // Used for border color
-                    const scoreDisplayClass = getMoodScoreDisplayClass(score); // NEW: Used for text color
+                    const moodClass = getMoodClass(score); 
+                    const scoreDisplayClass = getMoodScoreDisplayClass(score); 
                     const emoji = entry.mood_emoji || getMoodEmoji(score); 
                     const noteContent = entry.mood_note ? `<p class="mood-note">Note: ${entry.mood_note}</p>` : '';
                     

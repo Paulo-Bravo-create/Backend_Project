@@ -10,7 +10,7 @@
         :root { 
             --mn-bg-color: #12121e; 
             --mn-card-bg: #1c1c28; 
-            /* CHANGE: Set text color to white */
+        
             --mn-text-color: #ffffff; 
             --mn-accent-color: #9c27b0; 
             --mn-input-bg: #27273a; 
@@ -25,12 +25,12 @@
             flex-direction: column; 
         }
 
-        /* CHANGE: Explicitly set headers to white */
+    
         h1, h2, h3, h4, h5, h6 {
             color: var(--mn-text-color);
         }
 
-        /* CHANGE: Override Bootstrap's text-muted to be readable on dark backgrounds */
+     
         .text-muted {
             color: #adb5bd !important;
         }
@@ -127,11 +127,11 @@
             "R": { title: "Waning Moon", desc: "You are wise, reflective, and good at letting go. You understand that every ending is a preparation for a new start.", emoji: "🌗" }
         };
 
-        // State
+      
         let currentQuestion = 0;
         let scores = { E: 0, I: 0, G: 0, R: 0 };
 
-        // DOM Elements
+   
         const introSec = document.getElementById('introSection');
         const quizSec = document.getElementById('quizSection');
         const resultSec = document.getElementById('resultSection');
@@ -139,7 +139,7 @@
         const optionsContainer = document.getElementById('optionsContainer');
         const progressBar = document.getElementById('progressBar');
         const saveBtn = document.getElementById('saveResultBtn');
-        // downloadBtn variable removed
+   
 
         function startQuiz() {
             introSec.classList.add('d-none');
@@ -182,13 +182,13 @@
             document.getElementById('resultDesc').textContent = resultData.desc;
             document.getElementById('resultIcon').textContent = resultData.emoji; 
 
-            // Pass only the clean title for reliable database saving
+        
             saveBtn.onclick = () => saveResultToBackend(resultData.title, resultData.desc);
             
-            // downloadBtn.onclick assignment removed
+           
         }
 
-        // downloadResultAsPDF function removed
+       
 
         async function saveResultToBackend(phase, desc) {
             const token = localStorage.getItem('userToken');
@@ -201,7 +201,7 @@
                 const response = await fetch('/api/personality', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    // moon_phase is now just the plain title text (e.g., "Full Moon")
+                   
                     body: JSON.stringify({ moon_phase: phase, description: desc }) 
                 });
 
@@ -218,22 +218,22 @@
             }
         }
 
-        // --- NEW FUNCTION TO RETAKE THE TEST ---
+     
         function retakeTest() {
-            // 1. Reset State
+           
             currentQuestion = 0;
             scores = { E: 0, I: 0, G: 0, R: 0 };
             
-            // 2. Switch back to Introduction View
+            
             resultSec.classList.add('d-none');
             introSec.classList.remove('d-none');
             
-            // 3. Reset Save Button appearance (in case user saved)
+          
             saveBtn.textContent = 'Save to Profile';
             saveBtn.classList.replace('btn-success', 'btn-outline-light');
             saveBtn.disabled = false;
             
-            // 4. Update progress bar visually
+            
             progressBar.style.width = '0%';
         }
 

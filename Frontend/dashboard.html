@@ -10,7 +10,7 @@
         :root { 
             --mn-bg-color: #12121e; 
             --mn-card-bg: #1c1c28; 
-            /* CHANGE: Set text color to white */
+           
             --mn-text-color: #ffffff; 
             --mn-accent-color: #9c27b0; 
             --mn-input-bg: #27273a; 
@@ -23,12 +23,12 @@
             min-height: 100vh; 
         }
 
-        /* CHANGE: Explicitly set headers to white to override Bootstrap defaults */
+        
         h1, h2, h3, h4, h5, h6 {
             color: var(--mn-text-color);
         }
 
-        /* CHANGE: Override Bootstrap's text-muted to be readable on dark backgrounds */
+   
         .text-muted {
             color: #adb5bd !important;
         }
@@ -55,12 +55,12 @@
         
         .metric-title {
             font-size: 1rem;
-            /* CHANGE: Made title lighter */
+         
             color: #e0e0e0; 
         }
         
         .loading-text {
-            /* CHANGE: Made loading text lighter */
+     
             color: #ccc; 
             font-style: italic;
         }
@@ -149,9 +149,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // PDF variables removed
-
-        // Utility function to get the appropriate emoji for display
+     
         const getPersonalityIcon = (title) => {
             if (title.includes("Full Moon")) return '🌕';
             if (title.includes("New Moon")) return '🌑';
@@ -182,7 +180,7 @@
                 }
             };
             
-            // --- Fetch Personality Data ---
+         
             const fetchPersonality = async () => {
                 if (!token) return;
 
@@ -195,17 +193,17 @@
                         const data = await response.json();
                         
                         if (data && data.moon_phase) {
-                            // Use the utility function to get the icon from the plain text title
+                          
                             const icon = getPersonalityIcon(data.moon_phase);
                             const displayText = `${icon} ${data.moon_phase}`;
 
-                            // Update UI
+                           
                             document.getElementById('personalityDisplay').textContent = displayText;
                             document.getElementById('personalityDesc').textContent = data.description;
                             document.getElementById('personalityBtn').textContent = "Retake Test";
                             
                         } else {
-                            // CHANGE: Updated inline style color to light gray (#ccc)
+                       
                             document.getElementById('personalityDisplay').innerHTML = '<span style="font-size: 1rem; color: #ccc;">No result yet.</span>';
                         }
                     }
@@ -253,7 +251,7 @@
             });
         });
 
-        // PDF download function removed
+        
     </script>
 </body>
 </html>

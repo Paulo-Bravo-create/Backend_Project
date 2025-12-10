@@ -1,7 +1,7 @@
 const db = require('../db');
 
 exports.saveResult = async (req, res) => {
-    // Safely access user_id and check for middleware failure
+  
     const userId = req.user ? req.user.user_id : null; 
     const { moon_phase, description } = req.body;
 
@@ -12,37 +12,37 @@ exports.saveResult = async (req, res) => {
     
     if (!moon_phase) return res.status(400).json({ message: 'Moon phase is required' });
 
-    // --- TRANSACTION IMPLEMENTATION TO ENSURE ATOMIC DELETE/INSERT ---
-    let connection; // Declare connection variable to be accessible in finally block
+    
+    let connection; 
     try {
-        // 1. Get a dedicated connection from the pool
+      
         connection = await db.getConnection(); 
-        await connection.beginTransaction(); // Start the transaction
+        await connection.beginTransaction(); 
 
-        // 2. Delete old result so user only has 1 (Part of the transaction)
+        
         await connection.execute('DELETE FROM personality_results WHERE user_id = ?', [userId]);
 
-        // 3. Save new result (Part of the transaction)
+       
         const sql = `INSERT INTO personality_results (user_id, moon_phase, description) VALUES (?, ?, ?)`;
         await connection.execute(sql, [userId, moon_phase, description]);
 
-        await connection.commit(); // Commit the transaction if both operations succeed
+        await connection.commit(); 
 
         res.status(201).json({ message: 'Saved successfully.' });
     } catch (error) {
-        // If any error occurred, rollback the transaction
+        
         if (connection) {
-            await connection.rollback(); // Rollback to undo the DELETE if INSERT failed
+            await connection.rollback(); 
         }
         
-        // --- ENHANCED ERROR LOGGING ---
+       
         console.error('CRITICAL DATABASE/SQL Save Error:', error.message);
         console.error('SQL Statement that failed:', error.sql || 'N/A');
-        // ------------------------------
+        
         
         res.status(500).json({ message: 'Server error. Please check your server console for the CRITICAL SQL error details.' });
     } finally {
-        // 4. Release the connection back to the pool in any case
+     
         if (connection) {
             connection.release();
         }
